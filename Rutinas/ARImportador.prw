@@ -172,7 +172,7 @@ Static Function fCSVDesc(cPath)
     Local cError        := ""
     Local oDocumento
 
-    Private oArchivo    := ARArchivo():New() 
+    Private oArchivo    := ARArchiv2():New() 
 
     If !oMigrador:lOk
         lRet    := .F.
