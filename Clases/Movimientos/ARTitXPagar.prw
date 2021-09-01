@@ -2,12 +2,12 @@
 	
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | ARPedCompra | Autor: Andres Demarziani | Fecha: 27/04/2020  |
+| Programa | ARTitXPagar | Autor: Demarziani | Fecha: 31/08/2020      |
 |---------------------------------------------------------------------|
-| Descripcion: Carga docuemntos de Pedidos de venta                   |
+| Descripcion: Carga docuemntos de Titulos por cobrar.                |
 |---------------------------------------------------------------------|
 ======================================================================*/
-CLASS ARPedCompra FROM ARDocumento
+CLASS ARTitXPagar FROM ARDocumento
 
 	DATA cNum
 	
@@ -18,10 +18,10 @@ ENDCLASS
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | ARPedCompra | Autor: Andres Demarziani | Fecha: 29/10/2017  |
+| Programa | ARTitXPagar | Autor: Demarziani | Fecha: 31/08/2020      |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD New() CLASS ARPedCompra
+METHOD New() CLASS ARTitXPagar
 	
 	_Super:New()	
 	::setTipo("2")
@@ -30,43 +30,27 @@ RETURN SELF
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | ARPedCompra | Autor: Andres Demarziani | Fecha: 29/10/2017  |
+| Programa | ARTitXPagar | Autor: Demarziani | Fecha: 31/08/2020      |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD guardar() CLASS ARPedCompra
+METHOD guardar() CLASS ARTitXPagar
 	
 	Local cFunBkp 	:= FunName()
-	Local lNumer	:= Empty(::getValEncab("C7_NUM"))
-	Local nSaveSX8
-
-	If lNumer
-		nSaveSX8 := If(Type('nSaveSx8')=='U', GetSX8Len(), nSaveSX8)    
-	EndIf
 
 	Private lMsErroAuto := .F.
 	
-	SetFunName("MATA121")
+	SetFunName("FINA050")
 
-	MATA120(1,::aCab,::aDet1,3)
+	MsExecAuto({|x,y| FINA050(x,y)}, ::aCab, 3)
 	
 	::lGrabo := !lMsErroAuto
 
 	If !::lGrabo
 		// Revierto numeración
-		If lNumer
-    		While ( GetSX8Len() > nSaveSX8 )
-				RollBackSX8()
-			EndDo
-		EndIf
-
-		::cError := MostraErro("PEDCOM")
+		::cError := MostraErro("TITXPAG")
 	Else
-		::cNum		:= SC7->C7_NUM
+		::cNum		:= SE2->E2_NUM
 		::cError 	:= ""
-
-		If lNumer
-			ConfirmSX8()
-		EndIf
 	EndIf
 
 	SetFunName(cFunBkp)

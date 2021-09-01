@@ -14,9 +14,10 @@ User Function ARImportador()
 	Local aSize		    := MsAdvSize()
 	Local nAlto		    := aSize[6] * 0.85
 	Local nAncho	    := aSize[5] * 0.90
+    Local aButtons      := {}
 
     Local oPanel        := ARPanel():New()
-    Local aLineas       := {17,83}
+    Local aLineas       := {}
     Local aColumnas     := {}
 
     Local cArch         := Space(100)
@@ -25,10 +26,11 @@ User Function ARImportador()
     Local cFormat       := Space(6)
     Local oFormat
 
-    Local bOk           := {|| IIf(MsgYesNo("¿Confirma la carga de datos?"), Processa({|| fCargaDatos(oPanel)}),) }
-    Local bCancel       := {|| IIf(MsgYesNo("¿Desea salir del programa?"), oDlg:End(),)}
+    Local bOk           := {|| IIf(MsgYesNo("¿Confirma la carga de datos?", "Confirme"), Processa({|| fCargaDatos(oPanel, cFormat)}),) }
+    Local bCancel       := {|| IIf(MsgYesNo("¿Desea salir del programa?", "Confirme"), oDlg:End(),)}
 
     Private oMigrador   := ARMigrador():New()
+    Private oGDLog
 
     dbSelectArea("SX3")
     dbSetOrder(2)
@@ -36,26 +38,29 @@ User Function ARImportador()
     dbSelectArea("ZIZ")
     dbSetOrder(1)
 
-    aAdd(aColumnas, {015,1,"Formato","FORM"})
-    aAdd(aColumnas, {070,1,"Archivo","ARC"})
-    aAdd(aColumnas, {015,1,"Confirmación","CONF"})
+    aAdd(aLineas, 15)   // Linea 1
+    aAdd(aLineas, 80)   // Linea 2
 
-    aAdd(aColumnas, {020,2,"Campos","CPOS"})
-    aAdd(aColumnas, {080,2,"Log","LOG"})
+    aAdd(aColumnas, {15,1,"Formato","FORM"})
+    aAdd(aColumnas, {85,1,"Archivo","ARC"})
+
+    aAdd(aColumnas, {20,2,"Campos","CPOS"})
+    aAdd(aColumnas, {80,2,"Log","LOG"})
+
+    aAdd(aButtons, {"RELATORIO", {|| U_ARImp001() }, "Config.Mig"})
+    aAdd(aButtons, {"RELATORIO", {|| Processa({|lFin| fVerLogs(@lFin, cFormat) }, "Cargando Logs",,.T.)}, "Ver Logs"})
+    aAdd(aButtons, {"EXCEL", {|| Processa({|lFin| fExpExcel(@lFin, cFormat) }, "Bajando a Excel...",,.T.)}, "Log a Excel"})
 
     DEFINE MSDIALOG oDlg FROM 000,000 TO nAlto, nAncho TITLE cTitulo PIXEL
 	
         oPanel:setPaneles(oDlg, aLineas, aColumnas)
 
-	    @ 004,005 MSGET oFormat VAR cFormat SIZE 50,007 OF oPanel:getPanel("FORM") PIXEL VALID fVldFor(cFormat, oPanel)
+	    @ 004,005 MSGET oFormat VAR cFormat SIZE 50,007 OF oPanel:getPanel("FORM") PIXEL VALID fVldFor(cFormat, oPanel) F3 "ZIZ"
         
 	    @ 004,005 MSGET oArch VAR cArch SIZE 200,007 OF oPanel:getPanel("ARC") PIXEL WHEN .F.
-        TBtnBmp2():New(004,430,026,026,"SDUOPEN",,,, {|| fProcesa(@cArch)}, oPanel:getPanel("ARC"), "Archivo...")
+        TBtnBmp2():New(004,430,026,026,"SDUOPEN",,,, {|| fProcesa(@oArch, @cArch)}, oPanel:getPanel("ARC"), "Archivo...")
         
-		oBtnOk     := SButton():New(004,005, 1, bOk, oPanel:getPanel("CONF"), Nil, Nil, Nil)
-		oBtnCancel := SButton():New(004,040, 2, bCancel, oPanel:getPanel("CONF"), Nil, Nil, Nil)	
-
-	ACTIVATE MSDIALOG oDlg CENTERED
+	ACTIVATE MSDIALOG oDlg ON INIT EnchoiceBar(oDlg, bOK, bCancel,, aButtons) CENTERED
 
 Return Nil
 
@@ -64,30 +69,39 @@ Return Nil
 | Programa | DESCRISX | Autor: Andres Demarziani | Fecha: 15/02/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-Static Function fCargaDatos(oPanel)
+Static Function fCargaDatos(oPanel, cFormat)
 
     Local nTotDocs      := Len(oMigrador:aDocumentos)
     Local aDocumentos   := oMigrador:aDocumentos
-    Local oListaLog
-    Local aCab
-    Local aDet
+    Local aDet          := {}
+    Local nTamLog       := TamSX3("ZIY_LOGBRE")[1]
+    Local cTimeSt       := DToS(MsDate())+"_"+StrTran(Time(),":","")
+    Local cLog
     Local nX
-	Local oBMPVER       := LoadBitmap( GetResources(), "ENABLE" )
-	Local oBMPROJ       := LoadBitmap( GetResources(), "DISABLE" )    
 
-    If nTotDocs > 0
-        oListaLog     := ARLista():New("")
-        aCab          := {"","Documento","Detalle"}
-        aDet          := {}
-
+    If nTotDocs > 0        
         For nX := 1 To nTotDocs
-            aDocumentos[nX]:guardar()
-            aAdd(aDet, {IIf(aDocumentos[nX]:lGrabo, oBMPVER, oBMPROJ), nX, aDocumentos[nX]:cError})
+            If aDocumentos[nX]:validar()
+                aDocumentos[nX]:guardar()
+            EndIf
+
+            cLog := IIf(aDocumentos[nX]:lGrabo, "Ok", aDocumentos[nX]:cError)
+
+            aAdd(aDet, {cFormat,;
+                    cTimeSt,;
+                    __cUserId,;
+                    aDocumentos[nX]:cKeyCab,;
+                    Left(cLog, nTamLog),; 
+                    cLog,;
+                    .F.})
         Next nX
 
-        oListaLog:setArray(aCab, aDet)
-        oListaLog:getTwBrowse(oPanel:getPanel("LOG"))
-        oListaLog:refreshTwbr()
+        oGDLog := ArGetDados():New("")
+        oGDLog:setTabla("ZIY")
+        oGDLog:setCols(aDet)
+        oGDLog:aAlter := {"ZIY_LOG"}
+        oGDLog:getGetDados(oPanel:getPanel("LOG"))
+        oGDLog:grabaDatosTabla(.F.)
     EndIf
 
 Return Nil
@@ -97,9 +111,10 @@ Return Nil
 | Programa | DESCRISX | Autor: Andres Demarziani | Fecha: 15/02/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-Static Function fProcesa(cArch)
-					
-    cPath := cGetFile("Archivo CSV|*.csv",;
+Static Function fProcesa(oArch, cArch)
+
+    Local lRet  := .T.			
+    Local cPath := cGetFile("Archivo CSV|*.csv",;
                 "Seleccione el archivo",;
                 Nil,;
                 Nil,;
@@ -108,13 +123,20 @@ Static Function fProcesa(cArch)
                 .T.)
                 
     If !Empty(cPath) .And. File(cPath)
-        Processa({|| fCSVDesc(cPath)})
+        Processa({|| (lRet := fCSVDesc(cPath))})
+
+        If lRet 
+            cArch := cPath
+            oArch:Refresh()
+
+            MsgInfo("El archivo se procesó correctamente. Para comenzar la migración de los documentos, por favor confirme los cambios.", "Verifique")
+        EndIf
     EndIf
 
 Return Nil
 
 /*=====================================================================
-|---------------------------------------------------------------------|
+|--------------------------------------------------------------- ------|
 | Programa | DESCRISX | Autor: Andres Demarziani | Fecha: 15/02/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
@@ -148,6 +170,7 @@ Static Function fCSVDesc(cPath)
 
     Local lRet          := .T.
     Local cError        := ""
+    Local oDocumento
 
     Private oArchivo    := ARArchivo():New() 
 
@@ -161,12 +184,17 @@ Static Function fCSVDesc(cPath)
         ProcRegua(oArchivo:CantTotLinTxt())	
 
 		While !oArchivo:EOFTxt()
+            oDocumento := &(oMigrador:cObjRut+"():New()")
+            oDocumento:setTipo(oMigrador:cTipo)
+            oDocumento:setTablas(oMigrador:cTabCab, oMigrador:cTabDt1, oMigrador:cTabDt2)
+            oDocumento:setClaveUnica(oMigrador:cUnico1, oMigrador:cUnico2)
+
             If oMigrador:cTipo == "1"
-                tipo1()
+                tipo1(@oDocumento)
             ElseIf oMigrador:cTipo == "2"
-                tipo2()
+                tipo2(@oDocumento)
             ElseIf oMigrador:cTipo == "3"
-                tipo3()
+                tipo3(@oDocumento)
             EndIf
 		EndDo
 	EndIf
@@ -175,17 +203,15 @@ Static Function fCSVDesc(cPath)
 		U_FVerLog(cError)
     EndIf
 	
-Return Nil
+Return lRet
 
 /*=====================================================================
 |---------------------------------------------------------------------|
 | Programa | DESCRISX | Autor: Andres Demarziani | Fecha: 15/02/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-Static Function tipo1()
+Static Function tipo1(oDocumento)
 
-    Local oDocumento := &(oMigrador:cObjRut+"():New()")
-    
     //------------
     // Encabezado
     //------------
@@ -201,10 +227,9 @@ Return Nil
 | Programa | DESCRISX | Autor: Andres Demarziani | Fecha: 15/02/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-Static Function tipo2()
+Static Function tipo2(oDocumento)
 
-    Local oDocumento := &(oMigrador:cObjRut+"():New()")
-    Local aDet1         := {}
+    Local aDet1      := {}
     Local cClave1
 
     //------------
@@ -232,9 +257,8 @@ Return Nil
 | Programa | DESCRISX | Autor: Andres Demarziani | Fecha: 15/02/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-Static Function tipo3()
+Static Function tipo3(oDocumento)
 
-    Local oDocumento := &(oMigrador:cObjRut+"():New()")
     Local aDet1         := {}
     Local aDet2         := {}
     Local cClave1
@@ -315,3 +339,42 @@ Static Function arrayDoc(aCpos)
     Next nX
 
 Return aRet
+
+/*=====================================================================
+|---------------------------------------------------------------------|
+| Programa | fExpExcel | Autor: Andres Demarziani | Fecha: 15/02/2019 |
+|---------------------------------------------------------------------|
+======================================================================*/
+Static Function fExpExcel(lFin, cFormat)
+
+    Local cTitArc   := "importador_"+cFormat+"_log"
+
+    If ValType(oGDLog)=="O"        
+        U_FGenXML(@lFin, cTitArc, GetTempPath(), cTitArc+".xml", .T., oGDLog:aHeader, oGDLog:oGetDados:aCols, {}, "Log")
+    EndIf
+
+Return Nil
+
+/*=====================================================================
+|---------------------------------------------------------------------|
+| Programa | fExpExcel | Autor: Andres Demarziani | Fecha: 15/02/2019 |
+|---------------------------------------------------------------------|
+======================================================================*/
+Static Function fVerLogs(lFin, cFormat)
+
+    Private cForMig := cFormat
+
+    U_ESP00001()
+
+Return Nil
+
+/*=====================================================================
+|---------------------------------------------------------------------|
+| Programa | fExpExcel | Autor: Andres Demarziani | Fecha: 15/02/2019 |
+|---------------------------------------------------------------------|
+======================================================================*/
+User Function ARImp001()
+
+    AxCadastro("ZIZ","Configurador Migrador")
+
+Return Nil

@@ -19,6 +19,8 @@ CLASS ARMigrador
     DATA cTabDt1
     DATA cTabDt2
     DATA cObjRut
+	DATA cUnico1
+	DATA cUnico2
 	DATA aUnico1
 	DATA aUnico2
 	DATA aCposCab
@@ -60,6 +62,8 @@ METHOD New(cCod) CLASS ARMigrador
 	If dbSeek(xFilial("ZIZ")+::cCod)
 		::setMigrador()
 	Else
+        ::cUnico1   := {}
+        ::cUnico2   := {}
         ::aUnico1   := {}
         ::aUnico2   := {}
 	    ::aCposCab  := {}
@@ -89,6 +93,8 @@ METHOD setMigrador() CLASS ARMigrador
     ::cTabDt1       := ZIZ->ZIZ_TABDT1
     ::cTabDt2       := ZIZ->ZIZ_TABDT2
     ::cObjRut       := IIf(!Empty(ZIZ->ZIZ_RUTINA), AllTrim(ZIZ->ZIZ_RUTINA), "ARDocumento")
+    ::cUnico1       := ZIZ->ZIZ_UNICO
+    ::cUnico2       := ZIZ->ZIZ_UNICO2
 	::aUnico1       := IIf(!Empty(ZIZ->ZIZ_UNICO), ARMisc():Str2Arr(AllTrim(ZIZ->ZIZ_UNICO), "+"), {})
 	::aUnico2       := IIf(!Empty(ZIZ->ZIZ_UNICO2), ARMisc():Str2Arr(AllTrim(ZIZ->ZIZ_UNICO2), "+"), {})
 	::aCposCab      := IIf(!Empty(ZIZ->ZIZ_CPOCAB), ARMisc():Str2Arr(AllTrim(ZIZ->ZIZ_CPOCAB), ";"), {})
@@ -182,7 +188,7 @@ METHOD ValidaCpoSX3(aCpos, cDescDet, lGral) CLASS ARMigrador
         Else
             If aScan(::aTotCpos, {|x| x == cCpo})==0
                 aAdd(::aTotCpos, cCpo)
-            EndIf
+            EndIf   
 
             aAdd(::aTotDetCpos, {cDescDet, cCpo})
         EndIf

@@ -428,8 +428,8 @@ User Function UPDDESSX()
 		oTabSX1:armaVentana(@oFWLSX1, @oFolder:aDialogs[01])
 		oTabSX3:armaVentana(@oFWLSX3, @oFolder:aDialogs[02])
 		
-		oBtnOk     := SButton():New((nAlto/2)-20, (nAncho/2)-080, 1, {|| IIf((lOk := MsgYesNo("¿Confirma la actualización de las descripciones?")), oDlg:End(),) }, oDlg, Nil, Nil, Nil)
-		oBtnCancel := SButton():New((nAlto/2)-20, (nAncho/2)-045, 2, {|| IIf(MsgYesNo("¿Desea salir del programa?"), oDlg:End(),)}, oDlg, Nil, Nil, Nil)	
+		oBtnOk     := SButton():New((nAlto/2)-20, (nAncho/2)-080, 1, {|| IIf((lOk := MsgYesNo("¿Confirma la actualización de las descripciones?", "Confirme")), oDlg:End(),) }, oDlg, Nil, Nil, Nil)
+		oBtnCancel := SButton():New((nAlto/2)-20, (nAncho/2)-045, 2, {|| IIf(MsgYesNo("¿Desea salir del programa?", "Confirme"), oDlg:End(),)}, oDlg, Nil, Nil, Nil)	
 			
 	ACTIVATE MSDIALOG oDlg CENTERED
 	

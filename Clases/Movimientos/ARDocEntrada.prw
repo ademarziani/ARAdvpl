@@ -44,8 +44,9 @@ ENDCLASS
 METHOD New(cEsp, oCliFor, aProd, nMoneda) CLASS ARDocEntrada
 	
 	_Super:New("2")
+	::setTipo("2")
 
-	If cEsp <> Nil
+	If ValType(oCliFor) == "O"
 		::cEsp		:= AllTrim(cEsp)	
 		::oCliFor	:= oCliFor
 		::aProd		:= aProd
@@ -279,52 +280,60 @@ METHOD guardar() CLASS ARDocEntrada
 	Private cCodPV		:= ::cCodPDV	
 	Private cLocxNFPV
 	Private cIdPVArg
-	
-	Do Case
-	
-		Case ::cEsp == "NF"
-			
-			MSExecAuto({|x,y,z| MATA101N(x,y,z) }, ::aCab, ::aDet1, 3) 
+		
+	If Empty(::cEsp := Alltrim(::getValEncab("F1_ESPECIE")))
+		::cError := "La especie no fue informada en el encabezado."
+	Else
+		::setValEncab("F1_TIPODOC", ::getTipoDoc())
 
-		Case ::cEsp == "NDP"
-		
-			MSExecAuto({|x,y,z| MATA466N(x,y,z) }, ::aCab, ::aDet1, 3) 
-			
-		Case ::cEsp == "RCN"
-		
-			MSExecAuto({|x,y,z| MATA102N(x,y,z) }, ::aCab, ::aDet1, 3) 
-			
-		Case ::cEsp == "NCC"
-		
-			MSExecAuto({|x,y,z| MATA465N(x,y,z) }, ::aCab, ::aDet1, 3) 
-		
-	EndCase
-	
-	::lGrabo := ::verDocOk()
-	
-	If ::lGrabo .And. !Empty(::cCodPDV)
-		RecLock("SF1",.F.)
-		SF1->F1_PV := ::cPDV
-		MsUnLock()
-		
-		dbSelectArea("SX5")
-		dbSetOrder(1)
-		If dbSeek(xFilial("SX5")+"01"+AllTrim(::cSerie)+::cCodPDV)			
-			RecLock("SX5",.F.)
-			SX5->X5_DESCRI	:= Soma1(::cDoc)
-			SX5->X5_DESCSPA	:= Soma1(::cDoc)
-			SX5->X5_DESCENG	:= Soma1(::cDoc)
+		Do Case
+
+			Case ::cEsp == "NF"
+
+				MSExecAuto({|x,y,z| MATA101N(x,y,z) }, ::aCab, ::aDet1, 3) 
+
+			Case ::cEsp == "NDP"
+
+				MSExecAuto({|x,y,z| MATA466N(x,y,z) }, ::aCab, ::aDet1, 3) 
+
+			Case ::cEsp == "RCN"
+
+				MSExecAuto({|x,y,z| MATA102N(x,y,z) }, ::aCab, ::aDet1, 3) 
+
+			Case ::cEsp == "NCC"
+
+				MSExecAuto({|x,y,z| MATA465N(x,y,z) }, ::aCab, ::aDet1, 3) 
+
+		EndCase
+
+		::lGrabo := ::verDocOk()
+
+		If ::lGrabo .And. !Empty(::cCodPDV)
+			RecLock("SF1",.F.)
+			SF1->F1_PV := ::cPDV
 			MsUnLock()
-		EndIf	
+
+			dbSelectArea("SX5")
+			dbSetOrder(1)
+			If dbSeek(xFilial("SX5")+"01"+AllTrim(::cSerie)+::cCodPDV)			
+				RecLock("SX5",.F.)
+				SX5->X5_DESCRI	:= Soma1(::cDoc)
+				SX5->X5_DESCSPA	:= Soma1(::cDoc)
+				SX5->X5_DESCENG	:= Soma1(::cDoc)
+				MsUnLock()
+			EndIf
+
+			::cError := ""
+		EndIf
+
+		If !::lGrabo
+			If lMsErroAuto
+				::cError := MostraErro("ENTRADA")
+			Else
+				::cError := "Documento no grabado."
+			EndIf	
+		EndIf
 	EndIf
-	
-	If !::lGrabo
-		If lMsErroAuto
-			::cError := MostraErro("ENTRADA")
-		Else
-			::cError := "Documento no grabado."
-		EndIf	
-	EndIf	
 		
 RETURN Nil 
 
@@ -362,6 +371,7 @@ METHOD borrar() CLASS ARDocEntrada
 			::cError := MostraErro("SALIDA")
 			::lGrabo := .F.
 		Else
+			::cError := ""
 			::lGrabo := .T.
 		EndIf
 	EndIf
@@ -375,15 +385,22 @@ RETURN Nil
 ======================================================================*/
 METHOD verDocOk() CLASS ARDocEntrada
 
-	Local lRet	:= .F.
-	
+	Local aArea	:= GetArea()
+	Local lRet		:= .F.
+	Local cClave 	:= xFilial("SF1")+;
+					::getValEncab("F1_DOC")+;
+					::getValEncab("F1_SERIE")+;
+					::getValEncab("F1_FORNECE")+;
+					::getValEncab("F1_LOJA")
+
 	dbSelectArea("SF1")
 	dbSetOrder(1)
-	If SF1->(dbSeek(xFilial("SF1")+::cDoc+::cSerie+::oCliFor:cCod+::oCliFor:cLoja))
+	If SF1->(dbSeek(cClave))
 		lRet := .T.
 		
 		::nValBrut := SF1->F1_VALBRUT
 		::nValMerc := SF1->F1_VALMERC
 	EndIf
 		
+	RestArea(aArea)
 Return lRet

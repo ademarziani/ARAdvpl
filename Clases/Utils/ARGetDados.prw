@@ -159,7 +159,7 @@ METHOD setCampos(aCpoGDa, cItem, aCposClave, cLinOK, lVisual) CLASS ArGetDados
 	dbSelectArea("SX3")
 	dbSetOrder(2) // Campo
 	For nX := 1 to Len(aCpoGDa)
-		If AllTrim(aCpoGDa[nX]) == "BMPOK"
+		If AllTrim(aCpoGDa[nX]) == "BMPOK" .Or. Left(aCpoGDa[nX],3) == "BMP"
 			::lMark := .T.
 
 			aAdd(aHeader,{"",;							// X3_DESCRI		01
@@ -169,7 +169,7 @@ METHOD setCampos(aCpoGDa, cItem, aCposClave, cLinOK, lVisual) CLASS ArGetDados
 						0,;								// X3_DECIMAL		05
 						.T.,;							// X3_VALID			06
 						"",;							// X3_USADO			07
-						"C",;							// X3_TIPO			08
+						"B",;							// X3_TIPO			08
 						"",;							// X3_F3			09
 						"R",;							// X3_CONTEXT		10
 						"",;							// X3_CBOX			11
@@ -179,8 +179,9 @@ METHOD setCampos(aCpoGDa, cItem, aCposClave, cLinOK, lVisual) CLASS ArGetDados
 						"",;							// X3_VLDUSER		15
 						"",;							// X3_PICTVAR		16
 						""})							// X3_OBRIGA		17
-						
-		ElseIf SX3->(DbSeek(aCpoGDa[nX]))
+
+			aAdd(aLin, oBMPOK)
+		ElseIf SX3->(DbSeek(PadR(aCpoGDa[nX],10)))
 			aAdd(aHeader,{	AllTrim(X3Titulo()),;
 							SX3->X3_CAMPO	,;
 							SX3->X3_PICTURE,;

@@ -15,18 +15,20 @@ CLASS ARDocumento
 	DATA aDet2
 	DATA lGrabo
 	DATA cError
-
 	DATA cTipo
 	DATA cTabCab
 	DATA cTabDet1
 	DATA cTabDet2
 	DATA cUniqCab
+	DATA cKeyCab
 	DATA cUniqDet1
-	DATA cUniqDet2
+	DATA cKeyDet1
 	
 	METHOD New() CONSTRUCTOR
 
+	METHOD setTipo()
 	METHOD setTablas()
+	METHOD setClaveUnica()
 	METHOD setEncabezado()
 	METHOD setDet1()
 	METHOD setDet2()
@@ -40,6 +42,7 @@ CLASS ARDocumento
 	METHOD setVDt2()
 	METHOD getVDt2()
 	
+	METHOD validar()
 	METHOD guardar()
 	METHOD borrar()
 
@@ -50,17 +53,28 @@ ENDCLASS
 | Programa | ARDocumento | Autor: Demarziani | Fecha: 19/12/2021      |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD New(cTipo) CLASS ARDocumento
+METHOD New() CLASS ARDocumento
 	
-	::cTipo		:= cTipo
 	::aCab		:= {}
 	::aDet1		:= {}
 	::aDet2		:= {}
-
+	::cKeyCab	:= ""
+	::cKeyDet1	:= ""
 	::lGrabo	:= .F.
 	::cError	:= ""
 	
 RETURN SELF
+
+/*=====================================================================
+|---------------------------------------------------------------------|
+| Programa | ARDocumento | Autor: Demarziani | Fecha: 19/12/2021      |
+|---------------------------------------------------------------------|
+======================================================================*/
+METHOD setTipo(cTipo) CLASS ARDocumento
+
+	::cTipo := cTipo
+		
+RETURN Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
@@ -79,6 +93,21 @@ METHOD setTablas(cTabCab, cTabDet1, cTabDet2) CLASS ARDocumento
 	EndIf
 	
 RETURN Nil
+
+/*=====================================================================
+|---------------------------------------------------------------------|
+| Programa | ARDocumento | Autor: Demarziani | Fecha: 19/12/2021      |
+|---------------------------------------------------------------------|
+======================================================================*/
+METHOD setClaveUnica(cUniqCab, cUniqDet1) CLASS ARDocumento
+	
+	::cUniqCab 	:= cUniqCab
+
+	If ::cTipo == "3"
+		::cUniqDet1	:= cUniqDet1
+	EndIf
+	
+Return Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
@@ -229,10 +258,39 @@ Return xRet
 | Programa | ARDocumento | Autor: Demarziani | Fecha: 19/12/2021      |
 |---------------------------------------------------------------------|
 ======================================================================*/
+METHOD validar() CLASS ARDocumento
+
+	Local lRet
+	Local nX
+
+	If ::cTipo $ "1/2"
+		lRet := ARMisc():ValidReg(::cTabCab, ::cUniqCab, ::aCab, @::cError, @::cKeyCab)
+	EndIf
+
+	If lRet .And. ::cTipo == "3"
+		For nX := 1 To Len(::aDet1)
+			lRet := ARMisc():ValidReg(::cTabDet1, ::cUniqDet1, ::aDet1[nX], @::cError, @::cKeyDet1)
+
+			If !lRet
+				Exit
+			EndIf
+		Next			
+	EndIf
+
+Return lRet
+
+/*=====================================================================
+|---------------------------------------------------------------------|
+| Programa | ARDocumento | Autor: Demarziani | Fecha: 19/12/2021      |
+|------------------------------------------ ======================*/
 METHOD guardar() CLASS ARDocumento
 
 	Local nX
 	
+	::cError := ""
+	
+	Begin Transaction
+
 	::lGrabo := ARMisc():InsertReg(::cTabCab, ::aCab, @::cError)
 
 	If ::lGrabo .And. ::cTipo $ "2/3"
@@ -254,6 +312,12 @@ METHOD guardar() CLASS ARDocumento
 			Next
 		EndIf
 	EndIf
+
+	If !::lGrabo
+		DisarmTransaction()
+	EndIf
+
+	End Transaction
 
 RETURN Nil 
 
