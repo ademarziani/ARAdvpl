@@ -15,6 +15,7 @@ CLASS ARMisc
 	STATIC METHOD Str2Arr()
     STATIC METHOD InsertReg()
     STATIC METHOD ValidReg()
+    STATIC METHOD ValToQry()
 	
 END CLASS
 
@@ -118,8 +119,8 @@ METHOD ValidReg(cTabla, cUnico, aDatos, cError, cKey) CLASS ARMisc
 				lRet	:= .F.
 				cError	:= "El campo '"+cTmpCpo+"' es necesario para determinar la clave única y no ha sido informado."+CRLF
 			Else
-                cKey    += IIf(!Empty(cKey), "/", "")+cValToChar(aDatos[nPos][2])
-                cWhere  += "AND "+cTmpCpo+" = '"+cValToChar(aDatos[nPos][2])+"' "
+                cKey    += IIf(!Empty(cKey), " | ", "")+cValToChar(aDatos[nPos][2])
+                cWhere  += "AND "+cTmpCpo+" = '"+ARMisc():ValToQry(aDatos[nPos][2])+"' "
             EndIf
 		Next nX
 
@@ -144,3 +145,12 @@ METHOD ValidReg(cTabla, cUnico, aDatos, cError, cKey) CLASS ARMisc
     RestArea(aArea)
 
 Return lRet
+
+
+/*=====================================================================
+|---------------------------------------------------------------------|
+| Programa | insertTabla | Autor: Demarziani | Fecha: 19/12/2021      |
+|---------------------------------------------------------------------|
+======================================================================*/
+METHOD ValToQry(xVal) CLASS ARMisc
+Return IIf(ValType(xVal)=="D", DToS(xVal), cValToChar(xVal))

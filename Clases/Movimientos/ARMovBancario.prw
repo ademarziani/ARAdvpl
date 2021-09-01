@@ -3,15 +3,13 @@
 	
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSMOVBCO | Autor: Andres Demarziani | Fecha: 20/12/2019  |
+| Programa | ARMovBancario | Autor: Demarziani | Fecha: 20/09/2021    |
 |---------------------------------------------------------------------|
 | Descripcion: Movimiento bancario.                                   |
 |---------------------------------------------------------------------|
 ======================================================================*/
-CLASS DSMOVBCO
-		
-	DATA aCab
-	
+CLASS ARMovBancario
+			
 	DATA cFil
 	DATA oBanco	
 	DATA cRecPag
@@ -20,15 +18,9 @@ CLASS DSMOVBCO
 	DATA cNaturez
 	DATA oCliFor
 	DATA nRecno
-	
-	DATA cError
-	DATA lGrabo
-		
+			
 	METHOD New() CONSTRUCTOR
-	METHOD setEncabezado()
-	METHOD setValEncab()
-	METHOD getValEncab()
-	
+	METHOD setCab()	
 	METHOD guardar()
 	METHOD borrar()
 
@@ -36,37 +28,39 @@ ENDCLASS
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSMOVBCO | Autor: Andres Demarziani | Fecha: 20/12/2019  |
+| Programa | ARMovBancario | Autor: Demarziani | Fecha: 20/09/2021    |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD New(oBanco, cRecPag, nValor, dFecha, cNaturez, oCliFor, nRecno) CLASS DSMOVBCO
+METHOD New(oBanco, cRecPag, nValor, dFecha, cNaturez, oCliFor, nRecno) CLASS ARMovBancario
 
-	::cFil 		:= xFilial("SE5")
-	::oBanco	:= oBanco
-	::cRecPag	:= cRecPag
-	::nValor	:= nValor
-	::dFecha	:= dFecha
-	::cNaturez	:= cNaturez
-	::oCliFor	:= oCliFor
-	::nRecno	:= IIf(nRecno!=Nil, nRecno, 0)
+	_Super:New()
+	::setTipo("1")
 	
-	::setEncabezado()
-	
-	If ::nRecno <> 0
-		SE5->(dbGoTo(::nRecno))
+	If ValType(oBanco) == "O"
+		::cFil 		:= xFilial("SE5")
+		::oBanco	:= oBanco
+		::cRecPag	:= cRecPag
+		::nValor	:= nValor
+		::dFecha	:= dFecha
+		::cNaturez	:= cNaturez
+		::oCliFor	:= oCliFor
+		::nRecno	:= IIf(nRecno!=Nil, nRecno, 0)
+
+		::setEncabezado()
+
+		If ::nRecno <> 0
+			SE5->(dbGoTo(::nRecno))
+		EndIf
 	EndIf
-	
-	::cError	:= ""
-	::lGrabo	:= .F.
 	
 RETURN SELF
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSMOVBCO | Autor: Andres Demarziani | Fecha: 20/12/2019  |
+| Programa | ARMovBancario | Autor: Demarziani | Fecha: 20/09/2021    |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD setEncabezado() CLASS DSMOVBCO
+METHOD setCab() CLASS ARMovBancario
 
 	::aCab := {	{"E5_FILIAL",::cFil, Nil},;
 				{"E5_DATA", ::dFecha, Nil},;
@@ -99,69 +93,43 @@ RETURN Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSMOVBCO | Autor: Andres Demarziani | Fecha: 20/12/2019  |
+| Programa | ARMovBancario | Autor: Demarziani | Fecha: 20/09/2021    |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD setValEncab(cCampo, xVal) CLASS DSMOVBCO
-
-	Local nPos := aScan(::aCab, {|x| x[1] == cCampo})
-	
-	If nPos > 0
-		::aCab[nPos][2] := xVal
-	Else
-		aAdd(::aCab, {cCampo, xVal, Nil})
-	EndIf
-
-Return Nil
-
-/*=====================================================================
-|---------------------------------------------------------------------|
-| Programa | DSMOVBCO | Autor: Andres Demarziani | Fecha: 20/12/2019  |
-|---------------------------------------------------------------------|
-======================================================================*/
-METHOD getValEncab(cCampo) CLASS DSMOVBCO
-
-	Local nPos := aScan(::aCab, {|x| x[1] == cCampo})
-	Local xRet := 0
-	
-	If nPos > 0
-		xRet := ::aCab[nPos][2]
-	EndIf
-
-Return xRet
-
-/*=====================================================================
-|---------------------------------------------------------------------|
-| Programa | DSMOVBCO | Autor: Andres Demarziani | Fecha: 20/12/2019  |
-|---------------------------------------------------------------------|
-======================================================================*/
-METHOD guardar() CLASS DSMOVBCO
+METHOD guardar() CLASS ARMovBancario
 
 	Local cFunBkp 	:= FunName()
-	Local nTipo		:= IIf(::cRecPag == "P", 3, 4)
+	Local nTipo
 
 	Private lMsErroAuto := .F.
 
-	SetFunName("FINA100")
-
-	MSExecAuto({|x,y,z| Fina100(x,y,z)}, 0, ::aCab, nTipo)
-	
-	If lMsErroAuto
-		::cError := MostraErro("MOVBCO")
+	If Empty(::cRecPag := Alltrim(::getValEncab("E5_RECPAG")))
+		::cError := "La campo E5_RECPAG, para determinar el signo del movimiento, no fue informado."
 	Else
-		::lGrabo := .T.
+		nTipo := IIf(::cRecPag == "P", 3, 4)
+
+		SetFunName("FINA100")
+
+		MSExecAuto({|x,y,z| Fina100(x,y,z)}, 0, ::aCab, nTipo)
+		
+		If lMsErroAuto
+			::cError := MostraErro("MOVBCO")
+		Else
+			::cError := ""
+			::lGrabo := .T.
+		EndIf
+		
+		SetFunName(cFunBkp)
 	EndIf
-	
-	SetFunName(cFunBkp)
-	
+
 RETURN Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSMOVBCO | Autor: Andres Demarziani | Fecha: 20/12/2019  |
+| Programa | ARMovBancario | Autor: Demarziani | Fecha: 20/09/2021    |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD borrar() CLASS DSMOVBCO
+METHOD borrar() CLASS ARMovBancario
 
 	Private lMsErroAuto := .F.
 

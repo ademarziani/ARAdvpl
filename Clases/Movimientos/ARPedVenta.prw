@@ -33,7 +33,7 @@ ENDCLASS
 ======================================================================*/
 METHOD New(oCliente, aProd, nMoneda) CLASS ARPedVenta
 	
-	_Super:New("2")
+	_Super:New()
 	::setTipo("2")
 
 	If ValType(oCliente) == "O"
@@ -94,7 +94,7 @@ RETURN Nil
 ======================================================================*/
 METHOD setItem(oProd) CLASS ARPedVenta
 
-	Local nItem		:= Len(::aDet)+1
+	Local nItem		:= Len(::aDet1)+1
 	Local aItem		:= {}
 	Local nDecTot	:= TamSX3("C6_VALOR")[2]
 	
@@ -105,7 +105,7 @@ METHOD setItem(oProd) CLASS ARPedVenta
 	aAdd(aItem, {"C6_VALOR", Round(oProd:nQtd*oProd:nPrc, nDecTot), Nil})				
 	aAdd(aItem, {"C6_TES", oProd:cTS, Nil})
 	
-	aAdd(::aDet, aItem)
+	aAdd(::aDet1, aItem)
 
 Return Nil
 
@@ -128,7 +128,7 @@ METHOD guardar() CLASS ARPedVenta
 	
 	SetFunName("MATA410")
 
-	MSExecAuto({|a,b,c| Mata410(a,b,c)}, ::aCab, ::aDet, 3)
+	MSExecAuto({|a,b,c| Mata410(a,b,c)}, ::aCab, ::aDet1, 3)
 	
 	::lGrabo := !lMsErroAuto
 

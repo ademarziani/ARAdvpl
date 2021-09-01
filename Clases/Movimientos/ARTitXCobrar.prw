@@ -24,7 +24,7 @@ ENDCLASS
 METHOD New() CLASS ARTitXCobrar
 	
 	_Super:New()	
-	::setTipo("2")
+	::setTipo("1")
 
 RETURN SELF
 

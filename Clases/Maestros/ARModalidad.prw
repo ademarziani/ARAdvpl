@@ -2,72 +2,55 @@
 	
 /*=====================================================================
 |----------------------------------------------------------------------
-| Programa | ARBanco | Autor: Andres Demarziani
+| Programa | ARModalidad | Autor: Andres Demarziani
 |----------------------------------------------------------------------
 | Descripcion: Clase de Banco.
 |----------------------------------------------------------------------
 ======================================================================*/
-CLASS ARBanco FROM ARDocumento
-
-	DATA cFil
-	DATA cCod
-	DATA cAgencia
-	DATA cCuenta
-	DATA cCtaCont
-	DATA cNombre
-	DATA nMoneda
-	DATA nRecno
-	DATA lExiste
+CLASS ARModalidad FROM ARDocumento
 
 	METHOD New() CONSTRUCTOR
-	METHOD setBanco()
+	METHOD guardar()
 
 ENDCLASS
 
 /*=====================================================================
 |----------------------------------------------------------------------
-| Programa | ARBanco | Autor: Andres Demarziani
+| Programa | ARModalidad | Autor: Andres Demarziani
 |----------------------------------------------------------------------
 ======================================================================*/
-METHOD New(cCod,cAgencia,cCuenta) CLASS ARBanco	
-
-	Local cAlias := Alias()
+METHOD New() CLASS ARModalidad	
 
 	_Super:New()
 	::setTipo("1")
-
-	::cCod		:= IIf(cCod==Nil, Space(TamSX3("A6_COD")[1]), cCod)
-	::cAgencia	:= IIf(cAgencia==Nil, Space(TamSX3("A6_AGENCIA")[1]), cAgencia)
-	::cCuenta	:= IIf(cCuenta==Nil, Space(TamSX3("A6_NUMCON")[1]), cCuenta)
-
-	dbSelectArea("SA6")
-	dbSetOrder(1)
-	If dbSeek(xFilial("SA6")+::cCod+::cAgencia+::cCuenta)
-		::setBanco()
-	Else
-		::lExiste := .F.
-	EndIf
-	
-	dbSelectArea(cAlias)
 	
 RETURN SELF
 
 /*=====================================================================
 |----------------------------------------------------------------------
-| Programa | ARBanco | Autor: Andres Demarziani
+| Programa | ARModalidad | Autor: Andres Demarziani
 |----------------------------------------------------------------------
 ======================================================================*/
-METHOD setBanco() CLASS ARBanco
+METHOD guardar() CLASS ARModalidad
 	
-	::cFil 		:= SA6->A6_FILIAL
-	::cCod		:= SA6->A6_COD
-	::cAgencia	:= SA6->A6_AGENCIA
-	::cCuenta	:= SA6->A6_NUMCON
-	::cNombre	:= SA6->A6_NOME
-	::nMoneda	:= SA6->A6_MOEDA
-	::cCtaCont	:= SA6->A6_CONTA
-	::nRecno	:= SA6->(Recno())	
-	::lExiste	:= .T.
+	Local cFunBkp 	:= FunName()
+
+	Private lMsErroAuto := .F.
 	
-RETURN Nil
+	SetFunName("FINA010")
+
+	MsExecAuto({|x,y| FINA010(x,y)}, ::aCab, 3)
+	
+	::lGrabo := !lMsErroAuto
+
+	If !::lGrabo
+		::cError := MostraErro("MODALIDAD")
+	Else
+		::cError 	:= ""
+	EndIf
+
+	SetFunName(cFunBkp)
+
+RETURN Nil 
+
 

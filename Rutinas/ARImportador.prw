@@ -38,8 +38,8 @@ User Function ARImportador()
     dbSelectArea("ZIZ")
     dbSetOrder(1)
 
-    aAdd(aLineas, 15)   // Linea 1
-    aAdd(aLineas, 80)   // Linea 2
+    aAdd(aLineas, 18)   // Linea 1
+    aAdd(aLineas, 77)   // Linea 2
 
     aAdd(aColumnas, {15,1,"Formato","FORM"})
     aAdd(aColumnas, {85,1,"Archivo","ARC"})
@@ -99,7 +99,7 @@ Static Function fCargaDatos(oPanel, cFormat)
         oGDLog := ArGetDados():New("")
         oGDLog:setTabla("ZIY")
         oGDLog:setCols(aDet)
-        oGDLog:aAlter := {"ZIY_LOG"}
+        oGDLog:aAlter := {"ZIY_DOCUME","ZIY_LOG"}
         oGDLog:getGetDados(oPanel:getPanel("LOG"))
         oGDLog:grabaDatosTabla(.F.)
     EndIf

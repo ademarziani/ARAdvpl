@@ -7,7 +7,7 @@
 | Descripcion: Clase de Cliente.                                      
 |----------------------------------------------------------------------
 ======================================================================*/
-CLASS ARCliente
+CLASS ARCliente FROM ARDocumento
 
 	DATA cFil
 	DATA cCod
@@ -40,6 +40,9 @@ METHOD New(cCod,cLoja) CLASS ARCliente
 
 	Local cAlias := Alias()
 
+	_Super:New()
+	::setTipo("1")
+	
 	::cCod	:= IIf(cCod==Nil, Space(TamSX3("A1_COD")[1]), cCod)
 	::cLoja	:= IIf(cLoja==Nil, Space(TamSX3("A1_LOJA")[1]), cLoja)
 

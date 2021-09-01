@@ -2,12 +2,12 @@
 	
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | ARTitXPagar | Autor: Demarziani | Fecha: 31/08/2020      |
+| Programa | ARMovStock | Autor: Demarziani | Fecha: 27/04/2021       |
 |---------------------------------------------------------------------|
-| Descripcion: Carga docuemntos de Titulos por cobrar.                |
+| Descripcion: Carga docuemntos de Movimientos de stock.              |
 |---------------------------------------------------------------------|
 ======================================================================*/
-CLASS ARTitXPagar FROM ARDocumento
+CLASS ARMovStock FROM ARDocumento
 
 	DATA cNum
 	
@@ -18,38 +18,37 @@ ENDCLASS
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | ARTitXPagar | Autor: Demarziani | Fecha: 31/08/2020      |
+| Programa | ARMovStock | Autor: Andres Demarziani | Fecha: 29/10/2017  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD New() CLASS ARTitXPagar
+METHOD New() CLASS ARMovStock
 	
 	_Super:New()	
-	::setTipo("1")
+	::setTipo("2")
 
 RETURN SELF
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | ARTitXPagar | Autor: Demarziani | Fecha: 31/08/2020      |
+| Programa | ARMovStock | Autor: Andres Demarziani | Fecha: 29/10/2017  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD guardar() CLASS ARTitXPagar
+METHOD guardar() CLASS ARMovStock
 	
 	Local cFunBkp 	:= FunName()
 
 	Private lMsErroAuto := .F.
 	
-	SetFunName("FINA050")
+	SetFunName("MATA241")
 
-	MsExecAuto({|x,y| FINA050(x,y)}, ::aCab, 3)
+	MSExecAuto({|x,y,z| MATA241(x,y,z)}, ::aCab, ::aDet1, 3)
 	
 	::lGrabo := !lMsErroAuto
 
 	If !::lGrabo
-		// Revierto numeración
-		::cError := MostraErro("TITXPAG")
+		::cError := MostraErro("MOVSTOCK")
 	Else
-		::cNum		:= SE2->E2_NUM
+		::cNum		:= SD3->D3_DOC
 		::cError 	:= ""
 	EndIf
 

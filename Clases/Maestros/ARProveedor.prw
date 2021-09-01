@@ -8,7 +8,7 @@
 | Descripcion: Clase de Producto.
 |----------------------------------------------------------------------
 ======================================================================*/
-CLASS ARProveedor
+CLASS ARProveedor FROM ARDocumento
 
 	DATA cFil
 	DATA cCod
@@ -37,6 +37,9 @@ METHOD New(cCod,cLoja) CLASS ARProveedor
 
 	Local cAlias := Alias()
 
+	_Super:New()
+	::setTipo("1")
+	
 	::cCod	:= IIf(cCod==Nil, Space(TamSX3("A2_COD")[1]), cCod)
 	::cLoja	:= IIf(cLoja==Nil, Space(TamSX3("A2_LOJA")[1]), cLoja)
 	

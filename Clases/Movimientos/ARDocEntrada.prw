@@ -43,7 +43,7 @@ ENDCLASS
 ======================================================================*/
 METHOD New(cEsp, oCliFor, aProd, nMoneda) CLASS ARDocEntrada
 	
-	_Super:New("2")
+	_Super:New()
 	::setTipo("2")
 
 	If ValType(oCliFor) == "O"

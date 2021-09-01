@@ -8,7 +8,7 @@
 | Descripcion: Clase de Producto.
 |----------------------------------------------------------------------
 ======================================================================*/
-CLASS ARProducto
+CLASS ARProducto FROM ARDocumento
 
 	DATA cFil
 	DATA cCod
@@ -36,6 +36,9 @@ METHOD New(cCod) CLASS ARProducto
 
 	Local cAlias := Alias()
 
+	_Super:New()
+	::setTipo("1")
+	
 	::cCod	:= IIf(cCod==Nil, Space(TamSX3("B1_COD")[1]), cCod)
 		
 	dbSelectArea("SB1")
