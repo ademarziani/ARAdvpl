@@ -1,5 +1,4 @@
 #INCLUDE "PROTHEUS.CH"
-#INCLUDE "fileio.ch"
 
 /*苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘苘
 北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北北
@@ -15,6 +14,7 @@
 
 CLASS ARArchiv2
 
+	DATA oFile			As cObject
 	DATA nHnd 			As Numeric
 	DATA nTotReg		As Numeric
 	DATA lAbierto		As Boolean
@@ -103,7 +103,8 @@ METHOD AbreTxt(cNombre, cMsgError) CLASS ARArchiv2	// Pasar el parametro @cMsgEr
 
 	Local lRet	:= .T.
 
-	::nHnd := FOpen(cNombre, FO_READWRITE)
+	::oFile	:= ARFile():New()
+	::nHnd := ::oFile:FT_FUSE(cNombre)
 
 	If ::nHnd == -1						//Error en apertura.
 		lRet 			:= .F.
@@ -119,22 +120,22 @@ RETURN lRet
 
 //--------------------------------------------------------------------------------------------------------------------------------------- 
 METHOD CierraTxt() CLASS ARArchiv2
-	FT_FUSE()
+	::oFile:FT_FClose()
 RETURN 
 
 //--------------------------------------------------------------------------------------------------------------------------------------- 
 METHOD EOFTxt() CLASS ARArchiv2
-RETURN (FT_FEOF())
+RETURN (::oFile:FT_FEOF())
 
 //--------------------------------------------------------------------------------------------------------------------------------------- 
 METHOD LeeLinTxt() CLASS ARArchiv2
-RETURN (FT_FREADLN())
+RETURN (::oFile:FT_FREADLN())
 
 //--------------------------------------------------------------------------------------------------------------------------------------- 
 METHOD AvLinTxt(nLineas) CLASS ARArchiv2
-	Local lRet := FT_FSKIP(nLineas)
+	Local lRet := ::oFile:FT_FSKIP(nLineas)
 
-	If ::lCSV
+	If ::lCSV .And. !::EOFTxt()
 		::aLinCSV := ::LinToArr()
 	EndIf
 
@@ -142,11 +143,11 @@ RETURN lRet
 
 //--------------------------------------------------------------------------------------------------------------------------------------- 
 METHOD CantTotLinTxt() CLASS ARArchiv2
-RETURN (FT_FLASTREC())
+RETURN (::oFile:FT_FLASTREC())
 
 //--------------------------------------------------------------------------------------------------------------------------------------- 
 METHOD IrAlInicioTxt() CLASS ARArchiv2
-RETURN (FT_FGOTOP())
+RETURN (::oFile:FT_FGOTOP())
 
 //--------------------------------------------------------------------------------------------------------------------------------------- 
 METHOD LinToArr() CLASS ARArchiv2
@@ -181,9 +182,9 @@ METHOD ArchToArr(cCodParse) CLASS ARArchiv2
 		EndIf
 	EndIf
 		
-	FT_FGOTOP()
-	While !FT_FEOF()
-		cLineaTxt := FT_FREADLN()
+	::oFile:FT_FGOTOP()
+	While !::oFile:FT_FEOF()
+		cLineaTxt := ::oFile:FT_FREADLN()
 		
 		If !Empty(cCodParse)
 			For nX := 1 To Len(aLens)
@@ -197,7 +198,7 @@ METHOD ArchToArr(cCodParse) CLASS ARArchiv2
 		aAdd(aRet,aLin)
 		nIni := 1     
 		aLin := {}
-		FT_FSKIP()
+		::oFile:FT_FSKIP()
 	EndDo
 		
 	If !Empty(cCodParse)

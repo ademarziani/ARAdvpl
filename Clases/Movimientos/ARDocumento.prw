@@ -277,6 +277,10 @@ METHOD validar() CLASS ARDocumento
 		Next			
 	EndIf
 
+	If !lRet
+		::lGrabo := .F.
+	EndIf
+	
 Return lRet
 
 /*=====================================================================

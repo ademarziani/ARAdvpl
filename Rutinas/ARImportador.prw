@@ -79,6 +79,8 @@ Static Function fCargaDatos(oPanel, cFormat)
     Local cLog
     Local nX
 
+    ProcRegua(nTotDocs)	
+
     If nTotDocs > 0        
         For nX := 1 To nTotDocs
             If aDocumentos[nX]:validar()
@@ -94,6 +96,8 @@ Static Function fCargaDatos(oPanel, cFormat)
                     Left(cLog, nTamLog),; 
                     cLog,;
                     .F.})
+            
+            IncProc("Procesando "+cValToChar(nX)+" de "+cValToChar(nTotDocs)+" documentos.")
         Next nX
 
         oGDLog := ArGetDados():New("")
