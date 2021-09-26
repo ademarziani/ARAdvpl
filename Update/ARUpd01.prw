@@ -688,12 +688,12 @@ aAdd( aSX3, { ;
 	'C'																		, ; //X3_TIPO
 	40																		, ; //X3_TAMANHO
 	0																		, ; //X3_DECIMAL
-	'Descripci贸n'															, ; //X3_TITULO
-	'Descripci贸n'															, ; //X3_TITSPA
-	'Descripci贸n'															, ; //X3_TITENG
-	'Descripci贸n'															, ; //X3_DESCRIC
-	'Descripci贸n'															, ; //X3_DESCSPA
-	'Descripci贸n'															, ; //X3_DESCENG
+	'Descripci髇'															, ; //X3_TITULO
+	'Descripci髇'															, ; //X3_TITSPA
+	'Descripci髇'															, ; //X3_TITENG
+	'Descripci髇'															, ; //X3_DESCRIC
+	'Descripci髇'															, ; //X3_DESCSPA
+	'Descripci髇'															, ; //X3_DESCENG
 	''																		, ; //X3_PICTURE
 	''																		, ; //X3_VALID
 	IIF(lDicBD, Bin2Str(USADO02), USADO02)									, ; //X3_USADO
@@ -1208,12 +1208,12 @@ aAdd( aSX3, { ;
 	'C'																		, ; //X3_TIPO
 	6																		, ; //X3_TAMANHO
 	0																		, ; //X3_DECIMAL
-	'C贸digo Mig.'															, ; //X3_TITULO
-	'C贸digo Mig.'															, ; //X3_TITSPA
-	'C贸digo Mig.'															, ; //X3_TITENG
-	'C贸digo Mig.'															, ; //X3_DESCRIC
-	'C贸digo Mig.'															, ; //X3_DESCSPA
-	'C贸digo Mig.'															, ; //X3_DESCENG
+	'C骴igo Mig.'															, ; //X3_TITULO
+	'C骴igo Mig.'															, ; //X3_TITSPA
+	'C骴igo Mig.'															, ; //X3_TITENG
+	'C骴igo Mig.'															, ; //X3_DESCRIC
+	'C骴igo Mig.'															, ; //X3_DESCSPA
+	'C骴igo Mig.'															, ; //X3_DESCENG
 	''																		, ; //X3_PICTURE
 	''																		, ; //X3_VALID
 	IIF(lDicBD, Bin2Str(USADO02), USADO02)									, ; //X3_USADO
@@ -1605,7 +1605,7 @@ Local lDelInd   := .F.
 Local nI        := 0
 Local nJ        := 0
 
-AutoGrLog( "脻nicio da Atualiza莽茫o" + " SIX" + CRLF )
+AutoGrLog( "Inicio da Atualizacao" + " SIX" + CRLF )
 
 aEstrut := { "INDICE" , "ORDEM" , "CHAVE", "DESCRICAO", "DESCSPA"  , ;
              "DESCENG", "PROPRI", "F3"   , "NICKNAME" , "SHOWPESQ" }
@@ -1900,9 +1900,9 @@ aAdd( aSXB, { ;
 	'4'																		, ; //XB_TIPO
 	'01'																	, ; //XB_SEQ
 	'02'																	, ; //XB_COLUNA
-	'Descripci贸n'															, ; //XB_DESCRI
-	'Descripci贸n'															, ; //XB_DESCSPA
-	'Descripci贸n'															, ; //XB_DESCENG
+	'Descripci髇'															, ; //XB_DESCRI
+	'Descripci髇'															, ; //XB_DESCSPA
+	'Descripci髇'															, ; //XB_DESCENG
 	''																		, ; //XB_WCONTEM
 	'ZIZ_DESC'																} ) //XB_CONTEM
 

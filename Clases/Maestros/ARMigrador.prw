@@ -1,6 +1,7 @@
 #INCLUDE 'PROTHEUS.CH'
 
 #define TAMSX3      10
+#define EXCEPSX3    "AUTBANCO/AUTAGENCIA/AUTCONTA/AUTMOED/AUTCHEQUE/CBCOAUTO/CAGEAUTO/CCTAAUTO/MOEDAUTO"
 
 /*=====================================================================
 |----------------------------------------------------------------------
@@ -182,15 +183,15 @@ METHOD ValidaCpoSX3(aCpos, cDescDet, lGral) CLASS ARMigrador
     For nX := 1 To Len(aCpos)
         cCpo := PadR(aCpos[nX], TAMSX3)
 
-        If !SX3->(dbSeek(cCpo))
-            ::lOk       := .F.
-            ::cError    += "No se encontró el campo '"+cCpo+"' en el diccionario de datos."+CRLF
-        Else
+        If AllTrim(cCpo) $ EXCEPSX3 .Or. SX3->(dbSeek(cCpo))
             If aScan(::aTotCpos, {|x| x == cCpo})==0
                 aAdd(::aTotCpos, cCpo)
             EndIf   
 
             aAdd(::aTotDetCpos, {cDescDet, cCpo})
+        Else
+            ::lOk       := .F.
+            ::cError    += "No se encontró el campo '"+cCpo+"' en el diccionario de datos."+CRLF
         EndIf
     Next nX
 

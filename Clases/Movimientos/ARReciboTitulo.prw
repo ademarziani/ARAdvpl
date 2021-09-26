@@ -3,12 +3,12 @@
 	
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSTIXCOB | Autor: Andres Demarziani | Fecha: 29/10/2017  |
+| Programa | ARReciboTitulo | Autor:  Demarziani | Fecha: 29/10/2017  |
 |---------------------------------------------------------------------|
 | Descripcion: Titulo cuentas por cobrar.                             |
 |---------------------------------------------------------------------|
 ======================================================================*/
-CLASS DSTIXCOB
+CLASS ARReciboTitulo
 
 	DATA cFil
 	DATA cTipo
@@ -37,17 +37,17 @@ ENDCLASS
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSTIXCOB | Autor: Andres Demarziani | Fecha: 29/10/2017  |
+| Programa | ARReciboTitulo | Autor: Demarziani | Fecha: 29/10/2017   |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD New(oCliente, cTipo, cCuota, cSerie, cDoc) CLASS DSTIXCOB
+METHOD New(oCliente, cTipo, cCuota, cSerie, cDoc) CLASS ARReciboTitulo
 
 	Local aArea 	:= GetArea()
 	Local aAreaSE1	:= SE1->(GetArea())
 	
 	If oCliente == Nil .And. cDoc == Nil 
 		::cFil 			:= xFilial("SE1")
-		::oCliente		:= DSCLIENT():New(SE1->E1_CLIENTE, SE1->E1_LOJA)
+		::oCliente		:= ARCliente():New(SE1->E1_CLIENTE, SE1->E1_LOJA)
 		::cTipo			:= AllTrim(SE1->E1_TIPO)
 		::cCuota		:= SE1->E1_PARCELA
 		::cSerie		:= SE1->E1_PREFIXO
@@ -110,10 +110,10 @@ RETURN SELF
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSTIXCOB | Autor: Andres Demarziani | Fecha: 29/10/2017  |
+| Programa | ARReciboTitulo | Autor: Demarziani | Fecha: 29/10/2017   |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD cancela(nMoneda, nTxMoneda, nVlrRecibido) CLASS DSTIXCOB
+METHOD cancela(nMoneda, nTxMoneda, nVlrRecibido) CLASS ARReciboTitulo
 
 Local nVueltoMRec := 0
 Local nReciMTit
@@ -153,10 +153,10 @@ Return nVueltoMRec
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSTIXCOB | Autor: Andres Demarziani | Fecha: 29/10/2017  |
+| Programa | ARReciboTitulo | Autor: Demarziani | Fecha: 29/10/2017   |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD updateCampo(cCampo, xVal) CLASS DSTIXCOB
+METHOD updateCampo(cCampo, xVal) CLASS ARReciboTitulo
 
 	SE1->(dbGoTo(::nRecno))
 	If SE1->(Eof())

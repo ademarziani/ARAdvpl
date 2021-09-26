@@ -3,12 +3,12 @@
 	
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 | Descripcion: Carga de recibos de cobranzas (FJT, SEL).              |
 |---------------------------------------------------------------------|
 ======================================================================*/
-CLASS DSRECIBO
+CLASS ARRecibo
 
 	DATA cFil
 	DATA dFecha		
@@ -57,10 +57,10 @@ ENDCLASS
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD New(dFecha, oCliente, cSerie, cNumero, cNaturez, cCobrad, cNumProv, cVersion, cLiqTjta) CLASS DSRECIBO
+METHOD New(dFecha, oCliente, cSerie, cNumero, cNaturez, cCobrad, cNumProv, cVersion, cLiqTjta) CLASS ARRecibo
 	
 	Local aArea		:= GetArea()
 
@@ -120,10 +120,10 @@ Return SELF
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD setSerie(cSerie) CLASS DSRECIBO
+METHOD setSerie(cSerie) CLASS ARRecibo
 	
 	Local nTamSer := TamSX3("FJT_SERIE")[1]
 
@@ -137,10 +137,10 @@ Return Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD setNumero(cNumero) CLASS DSRECIBO
+METHOD setNumero(cNumero) CLASS ARRecibo
 
 	Local nTamDoc := TamSX3("FJT_RECIBO")[1]
 
@@ -154,16 +154,16 @@ Return Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD setCobro(cTipo, cPref, cNum, nMoneda, dFecha, dVcto, oBanco, cBcoChq, cAgeChq, cCtaChq, cCuit, nValor, nAliq, cCFO, cProv) CLASS DSRECIBO
+METHOD setCobro(cTipo, cPref, cNum, nMoneda, dFecha, dVcto, oBanco, cBcoChq, cAgeChq, cCtaChq, cCuit, nValor, nAliq, cCFO, cProv) CLASS ARRecibo
 	
 	Local oCobro
 	Local nTxMoneda	:= ::aTxRecibo[nMoneda][1]
 	
 	If nTxMoneda > 0
-		oCobro := DSRCOBRO():New(cTipo, cPref, cNum, nMoneda, dFecha, dVcto, oBanco, cBcoChq, cAgeChq, cCtaChq, cCuit, nValor, nTxMoneda, nAliq, cCFO, cProv)
+		oCobro := ARReciboCobro():New(cTipo, cPref, cNum, nMoneda, dFecha, dVcto, oBanco, cBcoChq, cAgeChq, cCtaChq, cCuit, nValor, nTxMoneda, nAliq, cCFO, cProv)
 		
 		If cTipo $ "RS|RL|RB|RI|RG"
 			oCobro:setRetenc(::cSerie, ::cNumero, ::oCliente:cCod, ::oCliente:cLoja)
@@ -181,17 +181,17 @@ Return Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD setDocumento(cTipo, cCuota, cSerie, cDoc, oDoc) CLASS DSRECIBO
+METHOD setDocumento(cTipo, cCuota, cSerie, cDoc, oDoc) CLASS ARRecibo
 
 	Local oDocumento
 	
 	If ValType(oDoc)=="O"
 		aAdd(::aDocumentos, oDoc)
 	Else
-		oDocumento := DSTIXCOB():New(::oCliente, cTipo, cCuota, cSerie, cDoc)
+		oDocumento := ARReciboTitulo():New(::oCliente, cTipo, cCuota, cSerie, cDoc)
 
 		If Empty(oDocumento:nRecno)
 			aAdd(::aErrores, {"No se encontró el título informado (Serie: "+AllTrim(cSerie)+" / Numero: "+cDoc+")"})
@@ -204,10 +204,10 @@ Return Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD setPropAsto(lMuestra, lAgrupa) CLASS DSRECIBO
+METHOD setPropAsto(lMuestra, lAgrupa) CLASS ARRecibo
 
 	::lMuestra 	:= lMuestra
 	::lAgrupa	:= lAgrupa
@@ -215,10 +215,10 @@ METHOD setPropAsto(lMuestra, lAgrupa) CLASS DSRECIBO
 Return Nil
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD guardar() CLASS DSRECIBO
+METHOD guardar() CLASS ARRecibo
 
 	Local nX
 	Local aAuxSEL
@@ -357,10 +357,10 @@ Return Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD borrar() CLASS DSRECIBO
+METHOD borrar() CLASS ARRecibo
 
 	Local cFNameBkp		:= FunName()
 	
@@ -394,10 +394,10 @@ Return Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD armaCobros() CLASS DSRECIBO
+METHOD armaCobros() CLASS ARRecibo
 
 	Local nX
 	Local nM
@@ -414,10 +414,10 @@ Return Nil
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD graboDatos() CLASS DSRECIBO
+METHOD graboDatos() CLASS ARRecibo
 
 	Local nX
 	Local nPos
@@ -562,7 +562,7 @@ Return lGrabo
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
 Static Function fEncabezado(nHdlPrv, cArquivo, cLote, cFuncion)
@@ -580,7 +580,7 @@ Return lRet
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
 Static Function fFinalizaAsiento(nHdlPrv, cArquivo, cLote, lMuestra, lAgrupa, nTotal)
@@ -595,10 +595,10 @@ Return lRet
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRECIBO | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+| Programa | ARRecibo | Autor: Andres Demarziani | Fecha: 18/12/2019  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD actNumSX5() CLASS DSRECIBO
+METHOD actNumSX5() CLASS ARRecibo
 
 	Local aArea		:= GetArea()
 	Local aAreaSX5	:= SX5->(GetArea())

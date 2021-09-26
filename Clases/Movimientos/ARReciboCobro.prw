@@ -3,12 +3,12 @@
 	
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRCOBRO | Autor: Andres Demarziani | Fecha: 17/12/2019  |
+| Programa | ARReciboCobro | Autor:  Demarziani | Fecha: 17/12/2019   |
 |---------------------------------------------------------------------|
 | Descripcion: Clase para definir la forma de cobro.                  |
 |---------------------------------------------------------------------|
 ======================================================================*/
-CLASS DSRCOBRO
+CLASS ARReciboCobro
 
 	DATA cTipo
 	DATA cPref
@@ -42,10 +42,10 @@ ENDCLASS
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRCOBRO | Autor: Andres Demarziani | Fecha: 17/12/2019  |
+| Programa | ARReciboCobro | Autor: Demarziani | Fecha: 17/12/2019    |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD New(cTipo, cPref, cNum, nMoneda, dFecha, dVcto, oBanco, cBcoChq, cAgeChq, cCtaChq, cCuit, nValor, nTxMoneda, nAliq, cProv, cCFO) CLASS DSRCOBRO
+METHOD New(cTipo, cPref, cNum, nMoneda, dFecha, dVcto, oBanco, cBcoChq, cAgeChq, cCtaChq, cCuit, nValor, nTxMoneda, nAliq, cProv, cCFO) CLASS ARReciboCobro
 				
 	::cTipo 	:= cTipo
 	::cPref		:= cPref
@@ -54,7 +54,7 @@ METHOD New(cTipo, cPref, cNum, nMoneda, dFecha, dVcto, oBanco, cBcoChq, cAgeChq,
 	::cMoneda	:= cValToChar(nMoneda)
 	::dFecha	:= dFecha
 	::dVcto		:= dVcto
-	::oBanco	:= IIF(oBanco!=Nil, oBanco, DSBANCO():New())
+	::oBanco	:= IIF(oBanco!=Nil, oBanco, ARBanco():New())
 	::cBcoChq	:= IIf(cBcoChq!=Nil, cBcoChq, Space(TamSX3("EL_BCOCHQ")[1])) 
 	::cAgeChq	:= IIf(cAgeChq!=Nil, cAgeChq, Space(TamSX3("EL_AGECHQ")[1])) 
 	::cCtaChq	:= IIf(cCtaChq!=Nil, cCtaChq, Space(TamSX3("EL_CTACHQ")[1])) 
@@ -112,10 +112,10 @@ RETURN SELF
 
 /*=====================================================================
 |---------------------------------------------------------------------|
-| Programa | DSRCOBRO | Autor: Andres Demarziani | Fecha: 17/12/2019  |
+| Programa | ARReciboCobro | Autor: Demarziani | Fecha: 17/12/2019    |
 |---------------------------------------------------------------------|
 ======================================================================*/
-METHOD setRetenc(cSer, cNum, cCli, cLoja) CLASS DSRCOBRO
+METHOD setRetenc(cSer, cNum, cCli, cLoja) CLASS ARReciboCobro
 	
 	aAdd(::aRet, {"FE_SERIE"	, cSer, Nil})
 	aAdd(::aRet, {"FE_RECIBO"	, cNum, Nil})
