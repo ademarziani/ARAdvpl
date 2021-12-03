@@ -275,12 +275,21 @@ RETURN cTipo
 ======================================================================*/
 METHOD guardar() CLASS ARDocEntrada
 	
+	Local dFecha    := ::getValEncab("F1_DTDIGIT")
+	Local lDtDigit	:= !Empty(dFecha) .And. ValType(dFecha)=="D"
+	Local dBkpData
+
 	Private lMsErroAuto := .F.
 	Private cNroPV		:= ::cPDV
 	Private cCodPV		:= ::cCodPDV	
 	Private cLocxNFPV
 	Private cIdPVArg
-		
+
+	If lDtDigit
+		dBkpData	:= dDataBase
+		dDataBase 	:= dFecha
+	EndIf
+
 	If Empty(::cEsp := Alltrim(::getValEncab("F1_ESPECIE")))
 		::cError := "La especie no fue informada en el encabezado."
 	Else
@@ -334,7 +343,11 @@ METHOD guardar() CLASS ARDocEntrada
 			EndIf	
 		EndIf
 	EndIf
-		
+	
+	If lDtDigit
+		dDataBase 	:= dBkpData
+	EndIf
+	
 RETURN Nil 
 
 /*=====================================================================
