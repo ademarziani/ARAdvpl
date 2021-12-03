@@ -301,6 +301,8 @@ METHOD DatoCSV(cCpo) CLASS ARArchiv2
             xRet := Val(::aLinCSV[nPos])
         ElseIf cTipo == "D"
             xRet := SToD(::aLinCSV[nPos])
+        ElseIf cTipo == "L"
+            xRet := StrTran(::aLinCSV[nPos],".","") == "T"
         Else
             xRet := IIf(nTam > 0, PadR(::aLinCSV[nPos], nTam), ::aLinCSV[nPos])
         EndIf

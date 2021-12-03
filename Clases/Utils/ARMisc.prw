@@ -61,20 +61,32 @@ METHOD InsertReg(cTabla, aDatos, cError) CLASS ARMisc
 
     aStru := (cTabla)->(dbStruct())
 
+    bError	:= ErrorBlock({|e| fChecErro(e, @cError)})
+
     Reclock(cTabla, .T.)
     For nX := 1 to Len(aStru)
         If aStru[nX,2] != 'M'
             cTmpCpo := Alltrim(aStru[nX][1])
 
-            If (nPos := aScan(aDatos, {|x| x[1] == cTmpCpo})) > 0
-                &(cTabla+"->"+cTmpCpo) := aDatos[nPos][2]
-            Else
-                &(cTabla+"->"+cTmpCpo) := CriaVar(cTmpCpo)
-            EndIf
+            BEGIN SEQUENCE
+
+                If (nPos := aScan(aDatos, {|x| x[1] == cTmpCpo})) > 0
+                    &(cTabla+"->"+cTmpCpo) := aDatos[nPos][2]
+                Else
+                    &(cTabla+"->"+cTmpCpo) := CriaVar(cTmpCpo)
+                EndIf                
+
+			END SEQUENCE
         EndIf
     Next        
     MsUnLock()        
 
+    ErrorBlock(bError)
+
+    If !Empty(cError)
+        lRet := .F.
+    EndIf
+    
 RETURN lRet 
 
 /*=====================================================================
@@ -154,3 +166,16 @@ Return lRet
 ======================================================================*/
 METHOD ValToQry(xVal) CLASS ARMisc
 Return IIf(ValType(xVal)=="D", DToS(xVal), cValToChar(xVal))
+
+/*=====================================================================
+|---------------------------------------------------------------------|
+| Programa | fChecErro | Autor: Andres Demarziani | Fecha: 18/12/2019 |
+|---------------------------------------------------------------------|
+======================================================================*/
+Static Function fChecErro(e, cError)
+
+	cError := e:ErrorStack
+
+	BREAK
+
+Return Nil
