@@ -42,6 +42,7 @@ CLASS ArGetDados
 	DATA cSucursal
 	DATA nIndice
 	DATA aCposClave
+	DATA bDblClick
 	
 	DATA oGetDados
 	DATA aHeader	
@@ -82,7 +83,11 @@ CLASS ArGetDados
 	METHOD grabaDatosTabla()
 	METHOD getValCpo()
 	METHOD getSumCpo()
+	METHOD setValCpo()
 	METHOD getOk()	
+	METHOD refresh()
+	METHOD checkDel()
+	METHOD btnOk()
 
 ENDCLASS
 
@@ -91,7 +96,7 @@ ENDCLASS
 =|Programa: New          | Autor: Microsiga         | Fecha: 03/05/2019  |=
 =|=======================================================================|=
 =========================================================================*/
-METHOD New(cTitulo, nPorcAncho, nPorcAlto) CLASS ArGetDados
+METHOD New(cTitulo, nPorcAncho, nPorcAlto, lOk) CLASS ArGetDados
 
 	Local aSize 	:= MsAdvSize()
 	
@@ -119,7 +124,7 @@ METHOD New(cTitulo, nPorcAncho, nPorcAlto) CLASS ArGetDados
 	::cSuperApagar:= ""				// Funcao executada quando pressionada as teclas <Ctrl>+<Delete>
 	::cApagaOk	:= "AllwaysTrue"	// Funcao executada para validar a exclusao de uma linha do aCols
 	
-	::lOk		:= .T.
+	::lOk		:= IIf(lOk==Nil,.F.,lOk)
 	::lMark		:= .F.
 	
 	If Type("oMainWnd")#"U"
@@ -159,7 +164,7 @@ METHOD setCampos(aCpoGDa, cItem, aCposClave, cLinOK, lVisual) CLASS ArGetDados
 	dbSelectArea("SX3")
 	dbSetOrder(2) // Campo
 	For nX := 1 to Len(aCpoGDa)
-		If AllTrim(aCpoGDa[nX]) == "BMPOK" .Or. Left(aCpoGDa[nX],3) == "BMP"
+		If AllTrim(aCpoGDa[nX]) == "BMPOK"
 			::lMark := .T.
 
 			aAdd(aHeader,{"",;							// X3_DESCRI		01
@@ -169,7 +174,7 @@ METHOD setCampos(aCpoGDa, cItem, aCposClave, cLinOK, lVisual) CLASS ArGetDados
 						0,;								// X3_DECIMAL		05
 						.T.,;							// X3_VALID			06
 						"",;							// X3_USADO			07
-						"B",;							// X3_TIPO			08
+						"C",;							// X3_TIPO			08
 						"",;							// X3_F3			09
 						"R",;							// X3_CONTEXT		10
 						"",;							// X3_CBOX			11
@@ -180,8 +185,7 @@ METHOD setCampos(aCpoGDa, cItem, aCposClave, cLinOK, lVisual) CLASS ArGetDados
 						"",;							// X3_PICTVAR		16
 						""})							// X3_OBRIGA		17
 
-			aAdd(aLin, oBMPOK)
-		ElseIf SX3->(DbSeek(PadR(aCpoGDa[nX],10)))
+		ElseIf SX3->(DbSeek(aCpoGDa[nX]))
 			aAdd(aHeader,{	AllTrim(X3Titulo()),;
 							SX3->X3_CAMPO	,;
 							SX3->X3_PICTURE,;
@@ -527,10 +531,14 @@ RETURN Nil
 =========================================================================*/
 METHOD setCols(aCols) CLASS ArGetDados
 
+	If Empty(aCols)
+		::setColsVacio()
+	Else
 	::aCols	:= aCols
 
-	If ::oGetDados <> Nil
+		If ValType(::oGetDados) == "O"
 		::oGetDados:aCols := aCols
+	EndIf
 	EndIf
 		
 RETURN Nil
@@ -578,18 +586,32 @@ RETURN Nil
 =========================================================================*/
 METHOD verDatos() CLASS ArGetDados
 
-	Local oDlg		:= Nil
-	Local nOpcA		:= 0
+	Local oDlg
+	Local bOk		:= {|| ::btnOk(oDlg)}
+	Local bCancel	:= {|| oDlg:End()}
 
 	If Len(::aCols) > 0				
 		DEFINE MSDIALOG oDlg FROM 000,000 TO ::nAlto,::nAncho TITLE ::cTitulo PIXEL
 	
 		::getGetDados(oDlg)
 		
-		ACTIVATE MSDIALOG oDlg ON INIT EnchoiceBar(oDlg,{ || nOpcA:=1,oDlg:End() },{|| nOpcA:=0,oDlg:End()},,) CENTERED
-		
-		::lOk := nOpcA == 1
+		ACTIVATE MSDIALOG oDlg ON INIT EnchoiceBar(oDlg,bOK,bCancel,,) CENTERED
 	EndIf
+
+Return Nil
+		
+/*=========================================================================
+=|=======================================================================|=
+=|Programa: verDatos     | Autor: Microsiga         | Fecha: 03/05/2019  |=
+=|=======================================================================|=
+=========================================================================*/
+METHOD btnOk(oDlg) CLASS ADGDADOS
+
+	::lOk := .T.
+
+	::aCols := aClone(::oGetDados:aCols)
+	
+	oDlg:End()
 
 Return Nil
 
@@ -637,10 +659,6 @@ RETURN Nil
 =========================================================================*/
 METHOD getGetDados(oVentana) CLASS ArGetDados
 
-If ::oGetDados <> Nil
-	::aCols := ::oGetDados:aCols
-EndIf
-
 ::oGetDados := MsNewGetDados():New(	::nSuperior,;
 								::nEsquerda,;
 								::nInferior,;
@@ -661,7 +679,9 @@ EndIf
 
 ::oGetDados:oBrowse:Align := CONTROL_ALIGN_ALLCLIENT
 
-If ::lMark
+If ValType(::bDblClick) == "B"
+	::oGetDados:oBrowse:bLDblClick := ::bDblClick
+ElseIf ::lMark 
 	::oGetDados:oBrowse:bLDblClick := {|| fMarkChk(::oGetDados)}
 EndIf
 
@@ -674,13 +694,12 @@ Return ::oGetDados
 =========================================================================*/
 METHOD grabaDatosTabla(lDeleta) CLASS ArGetDados
 
-	Local aCols	:= ::oGetDados:aCols
 	Local aHeader	:= ::oGetDados:aHeader
 	Local aReg	:= ::aRecnos
 	Local cTabla	:= ::cTabla
 	Local cPref	:= ::cPref
 
-	Local nMaxCol	:= Len(aCols)
+	Local nMaxCol	:= Len(::oGetDados:aCols)
 	Local nMaxReg	:= Len(aReg)
 	Local nMaxFor	:= MAX(nMaxCol,nMaxReg)
 	Local nY		:= 1
@@ -714,14 +733,14 @@ METHOD grabaDatosTabla(lDeleta) CLASS ArGetDados
 				If !Eof()
 					RecLock(cTabla,.F.)
 					
-					If aCols[nX][Len(aCols[nX])] .Or. lDeleta
+					If ::oGetDados:aCols[nX][Len(::oGetDados:aCols[nX])] .Or. lDeleta
 						DbDelete()
 						MsUnLock()
 						Loop
 					EndIf
 				EndIf
 			Else
-				If aCols[nX][Len(aCols[nX])]
+				If ::oGetDados:aCols[nX][Len(::oGetDados:aCols[nX])]
 					Loop
 				EndIf
 				
@@ -730,7 +749,7 @@ METHOD grabaDatosTabla(lDeleta) CLASS ArGetDados
 			
 			For nY := 1 To Len(aHeader)
 				If aHeader[nY][10] <> "V"
-					(cTabla)->(FieldPut(FieldPos(aHeader[nY][2]),aCols[nX][nY]))
+					(cTabla)->(FieldPut(FieldPos(aHeader[nY][2]),::oGetDados:aCols[nX][nY]))
 				EndIf
 			Next nY
 			
@@ -839,10 +858,12 @@ METHOD getSumCpo(cCpo) CLASS ArGetDados
 	EndIf
 	
 	For nX := 1 To Len(::oGetDados:aCols)
+		If !::checkDel(nX)
 		xVal := ::getValCpo(cCpo, nX)
 		
 		If ValType(xVal)=="N"
 			nRet += xVal
+		EndIf
 		EndIf
 	Next nX
 	
@@ -851,6 +872,25 @@ METHOD getSumCpo(cCpo) CLASS ArGetDados
 	EndIf
 
 Return nRet
+
+/*=========================================================================
+=|=======================================================================|=
+=|Programa: getValCpo    | Autor: Microsiga         | Fecha: 03/05/2019  |=
+=|=======================================================================|=
+=========================================================================*/
+METHOD setValCpo(cCpo, xVar, nPos) CLASS ADGDADOS
+
+	n := ::oGetDados:nAt
+	
+	If nPos == Nil
+		nPos := ::oGetDados:nAt
+	EndIf
+
+	GDFieldPut(cCpo, xVar, nPos, ::oGetDados:aHeader, ::oGetDados:aCols)
+
+	::aCols := aClone(::oGetDados:aCols)
+
+Return Nil
 
 /*========================================================================
 =|=======================================================================|=
@@ -868,3 +908,23 @@ METHOD getOk(nPos) CLASS ArGetDados
 
 Return lRet
 
+/*========================================================================
+=|=======================================================================|=
+=|Programa: getValCpo    | Autor: Microsiga         | Fecha: 03/05/2019  |=
+=|=======================================================================|=
+=========================================================================*/
+METHOD refresh() CLASS ADGDADOS
+
+	If ValType(::oGetDados)=="O"
+		::oGetDados:Refresh()
+	EndIf
+
+Return Nil
+
+/*========================================================================
+=|=======================================================================|=
+=|Programa: getValCpo    | Autor: Microsiga         | Fecha: 03/05/2019  |=
+=|=======================================================================|=
+=========================================================================*/
+METHOD checkDel(nPos) CLASS ADGDADOS
+Return GDDeleted(nPos, ::oGetDados:aHeader, ::oGetDados:aCols)
