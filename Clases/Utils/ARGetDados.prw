@@ -1,4 +1,3 @@
-
 #include "Protheus.ch"
 
 #define X3DESCRI	01
@@ -63,9 +62,11 @@ CLASS ArGetDados
 	DATA cCampoOk
 	DATA cSuperApagar
 	DATA cApagaOk
+	DATA lDelVacio
 	
 	DATA lOk
 	DATA lMark
+	DATA lData
 	
 	METHOD New() CONSTRUCTOR 
 	METHOD setTam()
@@ -126,6 +127,8 @@ METHOD New(cTitulo, nPorcAncho, nPorcAlto, lOk) CLASS ArGetDados
 	
 	::lOk		:= IIf(lOk==Nil,.F.,lOk)
 	::lMark		:= .F.
+	::lData		:= .F.
+	::lDelVacio	:= .F.
 	
 	If Type("oMainWnd")#"U"
 		::setTam(aSize[5]*nPorcAncho, aSize[6]*nPorcAlto)
@@ -341,6 +344,7 @@ METHOD getDatosTabla() CLASS ArGetDados
 		EndDo
 
 		If !Empty(aCols)
+			::lData := .T.
 			::setCols(aCols)
 		Else
 			::setColsVacio()
@@ -466,6 +470,8 @@ METHOD setQuery(cQuery) CLASS ArGetDados
 		dbSkip()
 	EndDo		
 
+	::lData := !Empty(aCols)
+	
 	::setHeader(aHeader)
 	::setCols(aCols)
 	
@@ -534,11 +540,11 @@ METHOD setCols(aCols) CLASS ArGetDados
 	If Empty(aCols)
 		::setColsVacio()
 	Else
-	::aCols	:= aCols
+		::aCols	:= aCols
 
 		If ValType(::oGetDados) == "O"
-		::oGetDados:aCols := aCols
-	EndIf
+			::oGetDados:aCols := aCols
+		EndIf
 	EndIf
 		
 RETURN Nil
@@ -570,7 +576,7 @@ METHOD setColsVacio() CLASS ArGetDados
 		EndIf
 	Next	
 			
-	aAdd(aColsLin, .F.)
+	aAdd(aColsLin, ::lDelVacio)
 	aAdd(aCols, aClone(aColsLin))
 			
 	::setCols(aCols)
@@ -605,7 +611,7 @@ Return Nil
 =|Programa: verDatos     | Autor: Microsiga         | Fecha: 03/05/2019  |=
 =|=======================================================================|=
 =========================================================================*/
-METHOD btnOk(oDlg) CLASS ADGDADOS
+METHOD btnOk(oDlg) CLASS ArGetDados
 
 	::lOk := .T.
 
@@ -878,7 +884,7 @@ Return nRet
 =|Programa: getValCpo    | Autor: Microsiga         | Fecha: 03/05/2019  |=
 =|=======================================================================|=
 =========================================================================*/
-METHOD setValCpo(cCpo, xVar, nPos) CLASS ADGDADOS
+METHOD setValCpo(cCpo, xVar, nPos) CLASS ArGetDados
 
 	n := ::oGetDados:nAt
 	
@@ -913,7 +919,7 @@ Return lRet
 =|Programa: getValCpo    | Autor: Microsiga         | Fecha: 03/05/2019  |=
 =|=======================================================================|=
 =========================================================================*/
-METHOD refresh() CLASS ADGDADOS
+METHOD refresh() CLASS ArGetDados
 
 	If ValType(::oGetDados)=="O"
 		::oGetDados:Refresh()
@@ -926,5 +932,5 @@ Return Nil
 =|Programa: getValCpo    | Autor: Microsiga         | Fecha: 03/05/2019  |=
 =|=======================================================================|=
 =========================================================================*/
-METHOD checkDel(nPos) CLASS ADGDADOS
+METHOD checkDel(nPos) CLASS ArGetDados
 Return GDDeleted(nPos, ::oGetDados:aHeader, ::oGetDados:aCols)

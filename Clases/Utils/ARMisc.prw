@@ -16,6 +16,7 @@ CLASS ARMisc
     STATIC METHOD InsertReg()
     STATIC METHOD ValidReg()
     STATIC METHOD ValToQry()
+    STATIC METHOD EnviaEMail()
 	
 END CLASS
 
@@ -179,3 +180,108 @@ Static Function fChecErro(e, cError)
 	BREAK
 
 Return Nil
+
+
+#include "Protheus.ch"
+
+/*=====================================================================
+|---------------------------------------------------------------------|
+| Programa | INFEMAIL | Autor: Andres Demarziani | Fecha: 18/12/2019  |
+|---------------------------------------------------------------------|
+======================================================================*/
+METHOD EnviaEMail(cTo, cAssunto, cMensagem, aArquivos, cCC, cBCC, cMailConta, cMailSenha, cMailServer, nPort) CLASS ARMisc
+
+    Local nArq
+	Local oServer
+    Local oMessage
+	Local cMsg 		:= ""
+	Local xRet      := 0
+	Local lMailAuth	:= .F.
+				
+	Default aArquivos := {}
+
+	cMailConta 	:= IIf(cMailConta == Nil, GetNewPar("MS_RELACNT", ""), cMailConta)                      // Conta utilizada para envio do email
+	cMailSenha 	:= IIf(cMailSenha == Nil, GetNewPar("MS_RELPSW", ""), cMailSenha)                       // Senha da conta de e-mail utilizada para envio
+	cMailServer	:= IIf(cMailServer == Nil, GetNewPar("MS_RELSERV","smtp.gmail.com"), cMailServer)       // Servidor SMTP
+	nPort	    := IIf(nPort == Nil, GetNewPar("MS_RELPORT", 465), nPort)                               // Puerta de salida
+	
+   	oMessage:= TMailMessage():New()
+	oMessage:Clear()
+   
+	oMessage:cDate	    := cValToChar(Date())
+	oMessage:cFrom 	    := cMailConta
+	oMessage:cTo 	    := cTo
+	oMessage:cSubject   := cAssunto
+	oMessage:cBody 	    := cMensagem
+
+	If cCC <> Nil .And. !Empty(cCC)
+		oMessage:cCC := cCC
+	EndIf
+	
+	If cBCC <> Nil .And. !Empty(cBCC)
+		oMessage:cBCC := cBCC
+	EndIf
+
+	If Len(aArquivos) > 0
+		For nArq := 1 To Len(aArquivos)
+			xRet := oMessage:AttachFile(aArquivos[nArq])
+			If xRet != 0
+				cMsg := "El archivo " + aArquivos[nArq] + " no se adjunto."
+			EndIf
+		Next nArq
+	EndIf		
+
+	If xRet == 0
+        oServer := TMailManager():New()
+        
+        If nPort == 465
+            lMailAuth := .T.
+            oServer:SetUseSSL(.T.)
+        ElseIf nPort = 587
+            lMailAuth := .T.
+            oServer:SetUseTLS(.T.)
+        EndIf
+
+		xRet := oServer:Init("", cMailServer, cMailConta, cMailSenha, 0, nPort) //inicilizar o servidor
+		If xRet != 0
+			cMsg := "El servidor SMTP no pudo inicializarse: " + oServer:GetErrorString( xRet )
+		EndIf
+	EndIf
+   
+	If xRet == 0
+		xRet := oServer:SetSMTPTimeout(40) //Indica o tempo de espera em segundos.
+		If xRet != 0
+			cMsg := "No fue posible definir el tiempo limite para " + cValToChar( nTimeout )
+		EndIf
+	EndIf
+
+	If xRet == 0
+		xRet := oServer:SMTPConnect()
+		If xRet != 0
+			cMsg := "No fue posible conectar al servidor SMTP: " + oServer:GetErrorString( xRet )
+		EndIf
+	EndIf
+   
+	If xRet == 0 .And. lMailAuth
+		xRet := oServer:SmtpAuth(cMailConta, cMailSenha)
+		If xRet != 0
+			cMsg := "Could not authenticate on SMTP server: " + oServer:GetErrorString( xRet )
+			oServer:SMTPDisconnect()
+		EndIf
+   	EndIf
+	
+	If xRet == 0
+		xRet := oMessage:Send( oServer )
+		If xRet != 0
+			cMsg := "No fue posible enviar el correo: " + oServer:GetErrorString( xRet )
+		EndIf
+	EndIf
+	
+	If xRet == 0
+		xRet := oServer:SMTPDisconnect()
+		If xRet != 0
+			cMsg := "No fue posible desconectar al servidor SMTP: " + oServer:GetErrorString( xRet )
+		EndIf
+	EndIf
+	
+Return {xRet == 0, cMsg}

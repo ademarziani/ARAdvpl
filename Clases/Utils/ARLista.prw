@@ -45,6 +45,7 @@ CLASS ARLista
 	METHOD verDatos()
 	METHOD getTwBrowse()
 	METHOD refreshTwbr()
+	METHOD getOk()
 
 ENDCLASS
 
@@ -466,3 +467,11 @@ Static Function fCreaVar(cTipo)
 	EndIf
 	
 Return xVar
+
+/*=========================================================================
+=|=======================================================================|=
+=|Programa: verDatos     | Autor: Microsiga         | Fecha: 03/05/2019  |=
+=|=======================================================================|=
+=========================================================================*/
+METHOD getOk(nX) CLASS ARLista	
+Return ValType(::aDatos[1,1]) == "L" .And. ::aDatos[nX,1]
